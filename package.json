@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "dev": "dotenv -- turbo dev --parallel",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "dotenv-cli": "latest",
+    "eslint": "^8.19.0",
+    "eslint-config-custom": "*",
+    "prettier": "^2.7.1",
+    "prettier-plugin-tailwindcss": "^0.1.12",
+    "turbo": "^1.6.1"
+  }
+}

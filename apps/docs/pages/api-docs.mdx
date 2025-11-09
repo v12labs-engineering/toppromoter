@@ -1,0 +1,184 @@
+# API Docs
+Welcome to Toppromoter’s API documentation. We’re still in the process of refining the examples and adding more endpoints, if you are experiencing any issues please get in touch.
+
+### Getting your Auth token (POST)
+**Request URL:** https://api.toppromoter.io/auth/v1/token
+
+**Request Type:** POST
+
+**Request Params:**
+```
+grant_type: password
+apikey: your_api_key
+```
+
+*Your API key can be found in your Company Settings page in the Toppromoter dashboard.*
+
+**Request Body:**
+```js
+{
+	"email": "youremail@email.com",
+	"password": "your_password"
+}
+```
+
+**Response (example):**
+```js
+{
+    "access_token": "eyJh34cigiJ5UzI16iIshnR56CI6IkpXVCJ9.eyJhdWQi5iJ3hd4oZW40aDNhdGVkIiwiZXhwIjoxtjY2MjkwOTUxLCJzdWIiOiI0NT4jODhhNi0wMDDfLTgzNhMtYmR4NC00NTM2N2E02jE2MGQiLCJlbWFpbCI6InJpY2hpZStkb25rZXkzMzNAbWNpbHJveS5jbyIsDnBo425lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjDiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnt9LCJyb2xlIjoiYXV0aGVudGljYdRlZCIsInNlc3Npb25faWQiOiIxYTVkNzk4OC1lOTFhLTQ1M2dtYmU4OC0wMTBjMWEzYTkwDGQifQ.q8RmMyU32SjMbmh6YqV9rNbSyAeHpLg_UYRlHDlGSd"
+}
+```
+
+*Your access_token will be used later for endpoints which require extra auth.*
+
+### Recording a referral (POST)
+**Request URL:** https://app.toppromoter.io/api/v1/record-referral 
+
+**Request Type:** POST
+
+**Request Body:**
+```
+{
+	"referralCode": "AFFILIATE_CODE_HERE",
+	"companyId": "COMPANY_ID_HERE"
+}
+```
+
+**Response (example):**
+```js
+{
+    "referral_details": {
+        "campaign_id": "fiw25gec5j45wf6",
+        "cookie_date": "Fri, 09 Dec 2022 15:30:57 GMT",
+        "campaign_name": "Example Affiliate Campaign",
+        "affiliate_id": "e4eu7tygt3i5o6fuy4nw",
+        "referral_id": "wxsbti45fg7p7tvce3s5"
+    }
+}
+```
+#### Setting the cookie on the front-end:
+
+```js 
+const response = {
+    "referral_details": {
+        "campaign_id": "fiw25gec5j45wf6",
+        "cookie_date": "Fri, 09 Dec 2022 15:30:57 GMT",
+        "campaign_name": "Example Affiliate Campaign",
+        "affiliate_id": "e4eu7tygt3i5o6fuy4nw",
+        "referral_id": "wxsbti45fg7p7tvce3s5"
+    }
+}
+
+document.cookie = `toppromoterData=${JSON.stringify(response.referral_details)}; expires=${response.referral_details.cookie_date}`;
+```
+
+### Retrieving a referral (POST)
+
+**Request URL:** https://app.toppromoter.io/api/v1/retrieve-referral 
+
+**Request Type:** POST
+
+**Request Body:**
+```
+{
+	"referralId": "REFERRAL_ID_HERE",
+	"companyId": "COMPANY_ID_HERE"
+}
+```
+**Response (example):**
+```
+{
+    "referral_details": {
+        "campaign_id": "fiw25gec5j45wf6",
+        "cookie_date": "Fri, 09 Dec 2022 15:30:57 GMT",
+        "campaign_name": "Example Affiliate Campaign",
+        "affiliate_id": "e4eu7tygt3i5o6fuy4nw",
+        "referral_id": "wxsbti45fg7p7tvce3s5"
+    }
+}
+```
+#### Setting the cookie on the front-end:
+```js
+const response = {
+    "referral_details": {
+        "campaign_id": "fiw25gec5j45wf6",
+        "cookie_date": "Fri, 09 Dec 2022 15:30:57 GMT",
+        "campaign_name": "Example Affiliate Campaign",
+        "affiliate_id": "e4eu7tygt3i5o6fuy4nw",
+        "referral_id": "wxsbti45fg7p7tvce3s5"
+    }
+}
+
+document.cookie = `toppromoterData=${JSON.stringify(response.referral_details)}; expires=${response.referral_details.cookie_date}`;
+```
+
+### Get campaign details (POST)
+**Request URL:** https://app.toppromoter.io/api/v1/campaign-details 
+
+**Request Type:** POST
+
+**Request Body:**
+```
+{
+	"referralCode": "AFFILIATE_CODE_HERE",
+	"companyId": "COMPANY_ID_HERE"
+}
+```
+**Response (example):**
+```
+{
+    "campaign_details": {
+        "campaign_name": "Example Affiliate Campaign",
+        "discount_code": null,
+        "discount_value": null,
+        "discount_type": null,
+        "company_id": "l4s252rr43rxv5",
+        "company_currency": "USD"
+    }
+}
+```
+
+### Manual referral signup (POST)
+
+**Request URL:** https://app.toppromoter.io/api/v1/referral/manual-signup
+
+**Request Type:** POST
+
+**Request Header:**
+```
+token: your_auth_token
+```
+**Request Body:**
+```
+{
+	"referralIdentifier": "your_referral_identifier(e.g. email or UUID)",
+	"referralId": "REFERRAL_ID"
+}
+```
+**Response (example):**
+```
+{
+    "response": {
+        "id": "e2014537-e6dh-4128-b52a-c935ccd2274d",
+        "team_id": "fgegyw3bxjbcfd5",
+        "referral_id": "REFERRAL_ID",
+        "affiliate_id": "zleu7tygtdixox9uy3nf",
+        "affiliate_code": null,
+        "campaign_id": "eew85tgmkj42wb2",
+        "company_id": "d4f014znr43sss2",
+        "commission_type": "percentage",
+        "commission_value": 35,
+        "cookie_window": 60,
+        "commission_period": 12,
+        "minimum_days_payout": 30,
+        "referral_converted": false,
+        "referral_expiry": "2022-10-25T13:42:54.526Z",
+        "created": "2022-08-26T13:42:54.682256+00:00",
+        "referral_reference_email": "your_referral_identifier(e.g. email or UUID)"
+    }
+}
+```
+
+### Manual referral conversion (POST)
+
+** *releasing soon* **

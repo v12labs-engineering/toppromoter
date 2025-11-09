@@ -1,0 +1,112 @@
+# Getting started
+First, you will need to create your Toppromoter account, which you can do here. Sign up only takes a minute, and can be done via one of our social signup options (Twitter, Google, LinkedIn), or you can choose to sign up with your email / password combination of choice.
+
+### Creating your team
+After you have created your account, you’ll first need to create a team. No problem if you don’t need to invite anybody, creating a team is just for managing things such as billing, multi-user access, etc.
+
+### Adding your website
+Once you’ve created your team, the next part of the setup process is to add your website details to Toppromoter.
+
+### Connecting your Payment Processor
+Next, you can connect your Stripe or Paddle account. This part is important for syncing and matching up Toppromoter referral conversions with your transactions. If you’d prefer to skip this step, you can click “Continue without connecting a payment processor”.
+
+### Configuring your currency settings
+After connecting your payment processor, this part is important for choosing how to display transaction values within your Toppromoter dashboard. 
+
+### Creating your first campaign
+Almost there! After you’ve completed the previous setup steps, you can now create and name your first Toppromoter campaign. By default, we will automatically fill-in some input data on your behalf to help guide you. For example, we normally recommend a commission percentage of 30% for maximum conversion, but this is of course up to you. 
+
+### Adding the Toppromoter script to your website
+This is the part that requires adding a small snippet of code to your website. The code is less than 13kb> and once installed requires no further maintenance from your end.
+```html copy
+<script async src='https://app.toppromoter.io/js/toppromoter.min.js' data-toppromoter='<your_company_id>'></script> 
+```
+
+### Tracking referral signups
+Referrals will be created when a user visits a URL created by one of your affiliates. A referral cookie will be placed on their device. If you’d like to learn how to setup automated cookie consent collection, you can read the guide for this here.
+When a referral is first created, this will show in your dashboard as a status of “Visited link”.
+To change the status of a referral to “Signed up”,  you need to run the below function when you are first creating the user. This process usually happens on your sign up page. 
+**You should do this for every sign up to make sure you catch all valid referrals. It doesn't matter if you send every single sign up to Toppromoter, regardless of if they have a referral cookie set or not, our system will only save users who signed up after visiting a referral link, and has a valid cookie in their browser.**
+
+```html copy
+<script type="text/javascript">
+   await Toppromoter.signup('yourcustomer@email.com')
+</script>
+```
+
+### Tracking referral conversions 
+With Toppromoter, there are two ways for you to track the referral conversion process. The default method is with webhooks, which were set up earlier in the process when you connected your payment processor.
+
+##### Tracking conversions with Stripe automatically:
+By default, when your referral passes the “Signed up” stage and the signup email has been attached to the referral, we will automatically search your connected Stripe account for a customer object with the same email. If a match is found, we will add a metafield property called `toppromoter_referral_id`, which contains the referral ID of the referral.
+Stripe will automatically send a webhook to Toppromoter when a new payment is received. From there, we will check to see if the `toppromoter_referral_id` exists on the customer object.
+
+##### Tracking conversions with Stripe manually:
+Alternatively, if no metafield is found on the customer object, we will check the payment object from the incoming webhook to see if the metafield was found here instead. 
+If you would prefer to manually add the metafield on your end, you just need to include the referral ID as metadata in your Stripe payment intent function, or your checkout session. For example, with Node.js, it would look like this:
+```js copy
+const session = await stripe.checkout.sessions.create({
+  success_url: 'https://example.com/success',
+  line_items: [
+    {price: 'price_H1grDwtqf4fbrJ', quantity: }
+  ],
+  {
+    metadata: {
+      toppromoter_referral_id: your_referral_id
+    }
+  },
+  mode: 'payment'
+});
+```
+
+To retrieve the referral ID from the front-end to your server-side code, Toppromoter will automatically inject a hidden input into forms with a `data-toppromoter` attribute. This makes it easier to get the referral ID sent to your server, along with any other data from your signup or payment form.
+For example, your signup form might look something like this:
+``` html copy
+<form action="/my-signup-form" method="POST" data-toppromoter>
+  <input type="email" name="email" id="email"/>
+	<input type="text" name="name" id="name"/>
+  <button>Sign Up</button>
+</form>
+```
+If the current visitor came to your site from an affiliate link, Toppromoter will detect the `data-toppromoter` attribute on each form and automatically insert a hidden input named `toppromoter_referral_id` with the unique referral ID as the value. For example:
+``` html copy
+<form action="/signup" method="post" data-toppromoter>
+  <input type="email" name="email" id="email"/>
+	<input type="text" name="name" id="name"/>
+  <button>Sign Up</button>
+  
+  <!-- This input was inserted automatically by Toppromoter -->
+  <input type="hidden" value="78476c40-0137-11eb" name="toppromoter_referral_id" id="toppromoter_referral_id"/>
+</form>
+```
+When the form is submitted, the `POST` data sent to your server will include the `toppromoter_referral_id` parameter, along with the rest of your other form data. 
+Alternatively, you can use the `Toppromoter.checkCookie()` function on the front-end to check if a referral cookie is found. It will return `null` if there is no cookie, and a JSON object if found. The JSON object will look something like this:
+```JSON
+{
+    "campaign_id": "dfevtqghdejvkfp",
+    "cookie_date": "Thu, 30 Mar 2023 21:53:08 GMT",
+    "campaign_name": "Example's Affiliate Campaign",
+    "affiliate_id": "d6fsgzxtklp53dhctn3x",
+    "referral_id": "dr94z34xcwhkb4fklpz0"
+}
+```
+Your if statement could look something like this:
+```js
+if(Toppromoter.checkCookie() !== null){
+	const referralId = Toppromoter.checkCookie().referral_id;
+	//Do something here
+}
+```
+**You can then then manually add it to the Stripe customer's metadata, or save it in your own database for future use.**
+
+### Cross subdomain tracking
+Are your marketing pages and app are hosted on two separate sub-domains? Not to worry. We have a solution, and it’s nice and simple.
+Simply add a `data-domains` prop to your Toppromoter `<script>` tag, populated with each additional sub-domain. It’s important that each domain is separated by a comma.
+You can use the example below as a guide:
+```html copy
+<script async src="https://app.toppromoter.io/js/toppromoter.min.js" data-domains="https://toppromoter.io,https://app.toppromoter.io,https://www.toppromoter.io" data-toppromoter="your_company_id"></script>
+```
+Be sure to paste the exact same `<script>` onto each of your additional sub-domains
+
+### Verifying your installation
+Once you’ve added the script to your website, simply click the “Verify on Website” button. After clicking, this will direct you to the website you entered in your company settings (where you placed the tracking script), and attempt to locate the code on your site. Once it has been verified, you will automatically be re-directed back to the Toppromoter setup page to finish. If you don’t get re-directed, please contact support.

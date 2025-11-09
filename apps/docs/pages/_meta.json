@@ -1,0 +1,9 @@
+{
+  "index": "Introduction",
+  "quick-start": "QuickStart Guide",
+  "api-docs": "API docs",
+  "about": {
+    "title": "About",
+    "type": "page"
+  }
+}
