@@ -5,6 +5,7 @@ import { slugifyString, LogSnagPost, postData } from '@/utils/helpers';
 export const UserContext = createContext();
 
 export const UserContextProvider = (props) => {
+  const [localDemo, setLocalDemo] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
@@ -15,6 +16,33 @@ export const UserContextProvider = (props) => {
   const [planDetails, setPlanDetails] = useState(null);
 
   useEffect(() => {
+    const isLocalDemo =
+      process.env.NEXT_PUBLIC_LOCAL_DEMO === 'true' &&
+      typeof window !== 'undefined' &&
+      ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+    if (isLocalDemo) {
+      const demoUser = {
+        id: 'local-demo-user',
+        email: 'demo@local.v12labs.test'
+      };
+
+      setLocalDemo(true);
+      setSession({ access_token: 'local-demo-session', user: demoUser });
+      setUser(demoUser);
+      setTeam({ team_id: 'local-demo-team', team_name: 'V12 Demo Team' });
+      setUserDetails({
+        id: demoUser.id,
+        email: demoUser.email,
+        full_name: 'V12 Demo Operator'
+      });
+      setSubscription({ status: 'active' });
+      setPlanDetails('growth');
+      setUserLoaded(true);
+      setUserFinderLoaded(true);
+      return undefined;
+    }
+
     const session = supabase.auth.session();
     setSession(session);
     setUser(session?.user ?? null);
@@ -50,7 +78,7 @@ export const UserContextProvider = (props) => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !localDemo) {
       Promise.allSettled([getTeam(), getUserDetails(), getSubscription()]).then(
         (results) => {
           if(results[0].value.data.length){
@@ -72,7 +100,7 @@ export const UserContextProvider = (props) => {
         }
       );
     }
-  }, [user]);
+  }, [user, localDemo]);
 
   const value = {
     session,
@@ -83,6 +111,7 @@ export const UserContextProvider = (props) => {
     subscription,
     userFinderLoaded,
     planDetails,
+    localDemo,
     updateUserDetails,
     updateTeam,
     signIn: (options) => supabase.auth.signIn({email: options.email}, {shouldCreateUser: options.shouldCreateUser, redirectTo: options.redirectTo}),

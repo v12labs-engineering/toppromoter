@@ -157,9 +157,9 @@ export const generateInviteUrl = (activeCampaign, companyHandle, campaignId) => 
 
 export const LogSnagPost = async (type, message) => {
   try {
-    if(process.env.NEXT_PUBLIC_LOGSNAG_TOKEN){
+    if(process.env.LOGSNAG_TOKEN){
       let myHeaders = new Headers();
-      myHeaders.append('Authorization', `Bearer ${process.env.NEXT_PUBLIC_LOGSNAG_TOKEN}`);
+      myHeaders.append('Authorization', `Bearer ${process.env.LOGSNAG_TOKEN}`);
       myHeaders.append('Content-Type', 'application/json');
     
       const project = 'toppromoter';

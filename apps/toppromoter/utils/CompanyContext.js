@@ -5,21 +5,50 @@ import { getCompanies, useUser, newTeam, updateUserDetailsWithTeam, getSubscript
 export const CompanyContext = createContext();
 
 export const CompanyContextProvider = (props) => {
-  const { user, team, subscription, userFinderLoaded, updateTeam, updateUserDetails } = useUser();
+  const { user, team, subscription, userFinderLoaded, updateTeam, updateUserDetails, localDemo } = useUser();
   const [userCompanyDetails, setUserCompanyDetails] = useState(null);
   const [creatingTeam, setCreatingTeam] = useState(false);
   const router = useRouter();
   let value;
 
   useEffect(() => {
-    if (userFinderLoaded && getCompanies && user && userCompanyDetails === null) {
+    if (localDemo && userCompanyDetails === null) {
+      setUserCompanyDetails([
+        {
+          id: user?.id,
+          company_id: 'demo',
+          company_name: 'Acme Cloud',
+          company_currency: 'USD',
+          company_handle: 'acme-cloud',
+          active_company: true,
+          created: '2025-01-14T00:00:00.000Z',
+          domain_verified: true,
+          payment_integration_type: 'stripe'
+        },
+        {
+          id: user?.id,
+          company_id: 'northstar',
+          company_name: 'Northstar Labs',
+          company_currency: 'USD',
+          company_handle: 'northstar',
+          active_company: false,
+          created: '2025-04-08T00:00:00.000Z',
+          domain_verified: true,
+          payment_integration_type: 'stripe'
+        }
+      ]);
+    }
+  }, [localDemo, user, userCompanyDetails]);
+
+  useEffect(() => {
+    if (!localDemo && userFinderLoaded && getCompanies && user && userCompanyDetails === null) {
       getCompanies(user?.id).then(results => {
         setUserCompanyDetails(Array.isArray(results) ? results : [results])
       });
     }
-  });
+  }, [localDemo, userFinderLoaded, user, userCompanyDetails]);
 
-  if(userCompanyDetails !== null && userCompanyDetails?.length === 0 && !router?.asPath?.includes('add-company') && router?.pathname !== '/dashboard/create-team'){
+  if(!localDemo && userCompanyDetails !== null && userCompanyDetails?.length === 0 && !router?.asPath?.includes('add-company') && router?.pathname !== '/dashboard/create-team'){
     if(team === 'none' && router?.pathname !== '/dashboard/create-team' && creatingTeam === false){
       setCreatingTeam(true);
       newTeam(user, {'team_name': 'My team'}).then((newTeam) => {
@@ -36,7 +65,7 @@ export const CompanyContextProvider = (props) => {
     }
   }
   
-  if(userCompanyDetails !== null && userCompanyDetails?.length > 0 && (router?.asPath === '/dashboard' || router?.asPath === '/dashboard#')){
+  if(!localDemo && userCompanyDetails !== null && userCompanyDetails?.length > 0 && (router?.asPath === '/dashboard' || router?.asPath === '/dashboard#')){
     const activeComp = userCompanyDetails?.filter(company=>company?.active_company === true);
     if (!subscription || subscription.length <= 0) {
       getSubscription(user).then((subDetails) => {

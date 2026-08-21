@@ -8,13 +8,11 @@ export default function InnerDashboardPage() {
   const router = useRouter();
   const { activeCompany } = useCompany();
 
-  // useEffect(() => {
-  //   if(activeCompany?.payment_integration_type === null) {
-  //     router.push(`/dashboard/${router?.query?.companyId}/setup`);
-  //   } else {
-  //     router.push(`/dashboard/${router?.query?.companyId}/analytics`);
-  //   }
-  // }, [activeCompany]);
+  useEffect(() => {
+    if (activeCompany?.company_id) {
+      router.replace(`/dashboard/${activeCompany.company_id}/home`);
+    }
+  }, [activeCompany, router]);
   
   return (
     <>

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from '@/utils/supabase-admin';
-import { postData } from '@/utils/helpers';
+import { decrypt } from '@/utils/crypto';
 import {
   createPaddleCommission,
   refundCommission
@@ -57,20 +57,18 @@ async function paddleWebhooksHandler(req: NextApiRequest, res: NextApiResponse) 
         return res.status(200).json({ 'message': 'Payment type is not Paddle'});
       }
       
-      const cryptoCall = await postData({
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/team/crypto`,
-        data: { 
-          cryptoType: "decrypt",
-          cryptoArray: [companyFromId?.data?.payment_integration_field_one, companyFromId?.data?.payment_integration_field_two, companyFromId?.data?.payment_integration_field_two]
-        },
-        token: null
-      });
-
-      if(cryptoCall?.message !== "success"){
+      let paymentCredentials;
+      try {
+        paymentCredentials = [
+          companyFromId.data.payment_integration_field_one,
+          companyFromId.data.payment_integration_field_two,
+          companyFromId.data.payment_integration_field_three
+        ].map((item) => decrypt(JSON.parse(item)));
+      } catch {
         return res.status(200).json({ 'message': 'Payment keys could not be decrypted'});
       }
 
-      const client = new PaddleSDK(cryptoCall?.data[2], cryptoCall?.data[1], cryptoCall?.data[0]);
+      const client = new PaddleSDK(paymentCredentials[2], paymentCredentials[1], paymentCredentials[0]);
       const isVerified = client.verifyWebhookData(req.body);
 
       if(isVerified === false) return res.status(200).json({ 'message': 'Webhook not verified' });
@@ -79,16 +77,16 @@ async function paddleWebhooksHandler(req: NextApiRequest, res: NextApiResponse) 
         try {
           switch (webhookType) {
             case 'payment_succeeded':
-              webhookResult = await createPaddleCommission(paddleReferral, req.body, companyId, cryptoCall?.data);
+              webhookResult = await createPaddleCommission(paddleReferral, req.body, companyId, paymentCredentials);
               break;
             case 'payment_refunded':
-              webhookResult = await refundCommission(paddleReferral, req.body, companyId, cryptoCall?.data);
+              webhookResult = await refundCommission(paddleReferral, req.body, companyId, paymentCredentials);
               break;
             case 'subscription_payment_succeeded':
-              webhookResult = await createPaddleCommission(paddleReferral, req.body, companyId, cryptoCall?.data);
+              webhookResult = await createPaddleCommission(paddleReferral, req.body, companyId, paymentCredentials);
               break;
             case 'subscription_payment_refunded':
-              webhookResult = await refundCommission(paddleReferral, req.body, companyId, cryptoCall?.data);
+              webhookResult = await refundCommission(paddleReferral, req.body, companyId, paymentCredentials);
               break;
             default:
               throw new Error('Unhandled relevant event!');

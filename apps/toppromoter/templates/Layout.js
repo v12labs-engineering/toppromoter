@@ -1,11 +1,8 @@
-import { TopNav } from '@/components/TopNav';
-// import { Navbar } from '@/components/Navbar';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useUser } from 'utils/useUser';
-import AdminMobileNav from '@/components/AdminNavbar/AdminMobileNav';
-import AdminDesktopNav from '@/components/AdminNavbar/AdminDesktopNav';
+import DashboardShell from '@/components/DashboardShell';
 
 export default function Layout({ children }) {
   const { user, userFinderLoaded } = useUser();
@@ -87,20 +84,7 @@ export default function Layout({ children }) {
             { children }
           </main>)
           : dashboardPage === true ?
-            <div>
-              <TopNav />
-              <div className="flex overflow-auto h-screen" style={ {height: 'calc(100vh - 100px)'} }>
-                <AdminDesktopNav />
-                <div className="flex-1 overflow-auto focus:outline-none">
-                  <AdminMobileNav />
-                  <main className="flex-1 relative pb-8 z-0 overflow-y-auto">
-                    <>
-                      { children }
-                    </>
-                  </main>
-                </div>
-              </div>
-            </div>
+            <DashboardShell>{children}</DashboardShell>
           : (
             <main id="skip">
               { children }

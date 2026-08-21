@@ -7,11 +7,20 @@ import { SEOMeta } from '@/templates/SEOMeta';
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [accessToken, setAccessToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', content: '' });
   const router = useRouter();
   const { user, forgotPassword } = useUser();
-  let access_token = null;
+
+  useEffect(() => {
+    const recoveryParams = new URLSearchParams(window.location.hash.slice(1));
+    const token = recoveryParams.get('access_token');
+    if (recoveryParams.get('type') === 'recovery' && token) {
+      setAccessToken(token);
+      window.history.replaceState(null, '', '/reset-password');
+    }
+  }, []);
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
@@ -37,7 +46,7 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessage({});
 
-    const { error } = await resetPassword(access_token, password);
+    const { error } = await resetPassword(accessToken, password);
     if (error) {
       setMessage({ type: 'error', content: error.message });
     } else {
@@ -52,15 +61,11 @@ const ForgotPassword = () => {
     setLoading(false);
   };
 
-  if(router?.asPath?.indexOf('?passwordReset=true&access_token=') > 0){
-    access_token = router?.asPath?.split('&access_token=')[1].split('&')[0];
-  }
-
   useEffect(() => {
-    if (user && router?.asPath?.indexOf('?passwordReset=true&access_token=') === -1) {
+    if (user && !accessToken) {
       router.push('/dashboard');
     }
-  }, [router, user]);
+  }, [accessToken, router, user]);
 
   return (
     <>
@@ -75,7 +80,7 @@ const ForgotPassword = () => {
             </div>
 
             {
-              router?.asPath?.indexOf('?passwordReset=true&access_token=') > 0 ?
+              accessToken ?
 
                 <form onSubmit={ handleResetPassword } className="mt-8 space-y-6">
                   <input type="hidden" name="remember" defaultValue="true" />
